@@ -5,8 +5,8 @@ Plugin URI: http://wordpress.org/extend/plugins/class-wp-importer/
 Description: Shared base class for importer plugins.
 Author: Automattic, Brian Colinger
 Author URI: http://automattic.com/
-Version: 0.2
-Stable tag: 0.2
+Version: 0.3
+Stable tag: 0.3
 License: GPL v2 - http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 */
 
@@ -205,8 +205,10 @@ class WP_Importer {
 			$current_blog = $blog;
 		}
 
-		if ( is_multisite() )
-			switch_to_blog( $blog_id );
+		if ( function_exists( 'is_multisite' ) ) {
+			if ( is_multisite() )
+				switch_to_blog( $blog_id );
+		}
 
 		return $blog_id;
 	}
