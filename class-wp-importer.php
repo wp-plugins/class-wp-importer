@@ -5,15 +5,10 @@ Plugin URI: http://wordpress.org/extend/plugins/class-wp-importer/
 Description: Shared base class for importer plugins.
 Author: Automattic, Brian Colinger
 Author URI: http://automattic.com/
-Version: 0.3
-Stable tag: 0.3
+Version: 0.4
+Stable tag: 0.4
 License: GPL v2 - http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 */
-
-if ( !class_exists( 'WP_Http' ) ) {
-	// Load WP_Http class
-	require_once ABSPATH . 'wp-includes/http.php';
-}
 
 /**
  * WP_Importer base class
@@ -261,8 +256,7 @@ class WP_Importer {
 
 		$args['headers'] = $headers;
 
-		$request = new WP_Http();
-		return $request->request( $url , $args );
+		return wp_remote_request( $url , $args );
 	}
 
 	/**
