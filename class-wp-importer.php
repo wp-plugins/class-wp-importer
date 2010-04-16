@@ -5,8 +5,8 @@ Plugin URI: http://wordpress.org/extend/plugins/class-wp-importer/
 Description: Shared base class for importer plugins.
 Author: Automattic, Brian Colinger
 Author URI: http://automattic.com/
-Version: 0.4
-Stable tag: 0.4
+Version: 0.5
+Stable tag: 0.5
 License: GPL v2 - http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 */
 
@@ -15,13 +15,13 @@ License: GPL v2 - http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
  * @author Brian Colinger
  */
 class WP_Importer {
+
 	/**
 	 * Class Constructor
 	 *
 	 * @return void
 	 */
-	public function __construct() {
-	}
+	public function __construct() {}
 
 	/**
 	 * Toggle $wpdb to read from MySql masters or slaves
@@ -29,15 +29,15 @@ class WP_Importer {
 	 * @param bool $flag
 	 * @return void
 	 */
-	public function read_from_masters($flag = true) {
+	public function read_from_masters( $flag = true ) {
 		global $wpdb;
 
-		if ($flag === true) {
+		if ( $flag === true ) {
 			// Read from masters
-			$wpdb->send_reads_to_masters ();
+			$wpdb->send_reads_to_masters();
 		} else {
 			// Read from slaves
-			$wpdb->srtm = array ();
+			$wpdb->srtm = array();
 		}
 	}
 
@@ -48,15 +48,15 @@ class WP_Importer {
 	 * @param bool $read_from_master
 	 * @return array
 	 */
-	public function get_imported_posts($importer_name, $bid, $read_from_master = false) {
+	public function get_imported_posts( $importer_name, $bid, $read_from_master = false ) {
 		global $wpdb;
 
-		if ($read_from_master === true) {
+		if ( $read_from_master === true ) {
 			// Set $wpdb to read from masters
-			$this->read_from_masters ( true );
+			$this->read_from_masters( true );
 		}
 
-		$hashtable = array ();
+		$hashtable = array();
 
 		$limit = 100;
 		$offset = 0;
@@ -64,26 +64,26 @@ class WP_Importer {
 		// Grab all posts in chunks
 		do {
 			$meta_key = $importer_name . '_' . $bid . '_permalink';
-			$sql = $wpdb->prepare ( "SELECT post_id, meta_value FROM $wpdb->postmeta WHERE meta_key = '%s' LIMIT %d,%d", $meta_key, $offset, $limit );
-			$results = $wpdb->get_results ( $sql );
+			$sql = $wpdb->prepare( "SELECT post_id, meta_value FROM $wpdb->postmeta WHERE meta_key = '%s' LIMIT %d,%d", $meta_key, $offset, $limit );
+			$results = $wpdb->get_results( $sql );
 
 			// Increment offset
-			$offset = ($limit + $offset);
+			$offset = ( $limit + $offset );
 
-			if (! empty ( $results )) {
+			if ( !empty( $results ) ) {
 				foreach ( $results as $r ) {
 					// Set permalinks into array
-					$hashtable [$r->meta_value] = intval ( $r->post_id );
+					$hashtable[$r->meta_value] = intval( $r->post_id );
 				}
 			}
-		} while ( count ( $results ) == $limit );
+		} while ( count( $results ) == $limit );
 
 		// unset to save memory
-		unset ( $results, $r );
+		unset( $results, $r );
 
-		if ($read_from_master === true) {
+		if ( $read_from_master === true ) {
 			// Set $wpdb to read from slaves
-			$this->read_from_masters ( false );
+			$this->read_from_masters( false );
 		}
 
 		return $hashtable;
@@ -96,31 +96,31 @@ class WP_Importer {
 	 * @param bool $read_from_master
 	 * @return int
 	 */
-	public function count_imported_posts($importer_name, $bid, $read_from_master = false) {
+	public function count_imported_posts( $importer_name, $bid, $read_from_master = false ) {
 		global $wpdb;
 
-		if ($read_from_master === true) {
+		if ( $read_from_master === true ) {
 			// Set $wpdb to read from masters
-			$this->read_from_masters ( true );
+			$this->read_from_masters( true );
 		}
 
 		$count = 0;
 
 		// Get count of permalinks
 		$meta_key = $importer_name . '_' . $bid . '_permalink';
-		$sql = $wpdb->prepare ( "SELECT COUNT( post_id ) AS cnt FROM $wpdb->postmeta WHERE meta_key = '%s'", $meta_key );
+		$sql = $wpdb->prepare( "SELECT COUNT( post_id ) AS cnt FROM $wpdb->postmeta WHERE meta_key = '%s'", $meta_key );
 
-		$result = $wpdb->get_results ( $sql );
+		$result = $wpdb->get_results( $sql );
 
-		if (! empty ( $result ))
-			$count = intval ( $result [0]->cnt );
+		if ( !empty( $result ) )
+			$count = intval( $result[0]->cnt );
 
 		// unset to save memory
-		unset ( $results );
+		unset( $results );
 
-		if ($read_from_master === true) {
+		if ( $read_from_master === true ) {
 			// Set $wpdb to read from slaves
-			$this->read_from_masters ( false );
+			$this->read_from_masters( false );
 		}
 
 		return $count;
@@ -133,64 +133,64 @@ class WP_Importer {
 	 * @param bool $read_from_master
 	 * @return array
 	 */
-	function get_imported_comments($bid, $read_from_master = false) {
+	function get_imported_comments( $bid, $read_from_master = false ) {
 		global $wpdb;
 
-		if ($read_from_master === true) {
+		if ( $read_from_master === true ) {
 			// Set $wpdb to read from masters
-			$this->read_from_masters ( true );
+			$this->read_from_masters( true );
 		}
 
-		$hashtable = array ();
+		$hashtable = array();
 
 		$limit = 100;
 		$offset = 0;
 
 		// Grab all comments in chunks
 		do {
-			$sql = $wpdb->prepare ( "SELECT comment_ID, comment_agent FROM $wpdb->comments LIMIT %d,%d", $offset, $limit );
-			$results = $wpdb->get_results ( $sql );
+			$sql = $wpdb->prepare( "SELECT comment_ID, comment_agent FROM $wpdb->comments LIMIT %d,%d", $offset, $limit );
+			$results = $wpdb->get_results( $sql );
 
 			// Increment offset
-			$offset = ($limit + $offset);
+			$offset = ( $limit + $offset );
 
-			if (! empty ( $results )) {
+			if ( !empty( $results ) ) {
 				foreach ( $results as $r ) {
 					// Explode comment_agent key
-					list ( $ca_bid, $source_comment_id ) = explode ( '-', $r->comment_agent );
-					$source_comment_id = intval ( $source_comment_id );
+					list ( $ca_bid, $source_comment_id ) = explode( '-', $r->comment_agent );
+					$source_comment_id = intval( $source_comment_id );
 
 					// Check if this comment came from this blog
-					if ($bid == $ca_bid) {
-						$hashtable [$source_comment_id] = intval ( $r->comment_ID );
+					if ( $bid == $ca_bid ) {
+						$hashtable[$source_comment_id] = intval( $r->comment_ID );
 					}
 				}
 			}
-		} while ( count ( $results ) == $limit );
+		} while ( count( $results ) == $limit );
 
 		// unset to save memory
-		unset ( $results, $r );
+		unset( $results, $r );
 
-		if ($read_from_master === true) {
+		if ( $read_from_master === true ) {
 			// Set $wpdb to read from slaves
-			$this->read_from_masters ( false );
+			$this->read_from_masters( false );
 		}
 
 		return $hashtable;
 	}
 
 	public function set_blog( $blog_id ) {
-		if (is_numeric( $blog_id )) {
+		if ( is_numeric( $blog_id ) ) {
 			$blog_id = (int) $blog_id;
 		} else {
 			$blog = 'http://' . preg_replace( '#^https?://#', '', $blog_id );
-			if ( ( !$parsed = parse_url( $blog )) || empty( $parsed ['host'] ) ) {
+			if ( ( !$parsed = parse_url( $blog ) ) || empty( $parsed['host'] ) ) {
 				fwrite( STDERR, "Error: can not determine blog_id from $blog_id\n" );
 				exit();
 			}
-			if ( empty( $parsed ['path'] ) )
-				$parsed ['path'] = '/';
-			if ( !$blog = get_blog_info( $parsed ['host'], $parsed ['path'] ) ) {
+			if ( empty( $parsed['path'] ) )
+				$parsed['path'] = '/';
+			if ( !$blog = get_blog_info( $parsed['host'], $parsed['path'] ) ) {
 				fwrite( STDERR, "Error: Could not find blog\n" );
 				exit();
 			}
@@ -209,7 +209,7 @@ class WP_Importer {
 	}
 
 	public function set_user( $user_id ) {
-		if (is_numeric( $user_id )) {
+		if ( is_numeric( $user_id ) ) {
 			$user_id = (int) $user_id;
 		} else {
 			$user_id = (int) username_exists( $user_id );
@@ -256,7 +256,7 @@ class WP_Importer {
 
 		$args['headers'] = $headers;
 
-		return wp_remote_request( $url , $args );
+		return wp_remote_request( $url, $args );
 	}
 
 	/**
@@ -277,60 +277,14 @@ class WP_Importer {
 	public function is_user_over_quota() {
 		global $current_user, $current_blog;
 
-		if( function_exists( 'upload_is_user_over_quota' ) ) {
-			if( upload_is_user_over_quota( 1 ) ) {
+		if ( function_exists( 'upload_is_user_over_quota' ) ) {
+			if ( upload_is_user_over_quota( 1 ) ) {
 				echo "Sorry, you have used your upload quota.\n";
-				$blog_url = 'http://' . $current_blog->domain . $current_blog->path . 'wp-admin/paid-upgrades.php';
-				$msg = '';
-				$msg .= "Howdy,\n\r";
-				$msg .= "You have used up all of your available upload space. This means we can not import any more attachments.\n\r";
-				$msg .= "You can purchase a space upgrade here: $blog_url \n\r";
-/*
-				$msg .= "If you purchase a space upgrade, we will automatically continue importing your attachments\n\r";
-				add_option( 'over_quota_resume', true );
-*/
-				wp_mail( $current_user->user_email, __( '[WordPress.com] Upload space limit reached' ), $msg );
 				return true;
 			}
 		}
 
 		return false;
-	}
-}
-
-/**
- * Wrapper for print_r() with additional line break
- *
- * @param string $array
- */
-function afdebug($array) {
-	if (isset ( $_SERVER ['SERVER_NAME'] )) {
-		echo '<pre style="text-align:left; font-size:12px; line-height:16px;">' . "\n";
-	}
-
-	print_r ( $array );
-	echo "\n";
-
-	if (isset ( $_SERVER ['SERVER_NAME'] )) {
-		echo '</pre>' . "\n";
-	}
-}
-
-/**
- * Wrapper for var_dump() with additional line break
- *
- * @param string $array
- */
-function afvardump($array) {
-	if (isset ( $_SERVER ['SERVER_NAME'] )) {
-		echo '<pre style="text-align:left; font-size:12px; line-height:16px;">' . "\n";
-	}
-
-	var_dump ( $array );
-	echo "\n";
-
-	if (isset ( $_SERVER ['SERVER_NAME'] )) {
-		echo '</pre>' . "\n";
 	}
 }
 
@@ -342,51 +296,51 @@ function afvardump($array) {
  * @param bool $blnRequired
  * @return mixed
  */
-function get_args($strParam, $blnRequired = false) {
-	$args = $_SERVER ['argv'];
+function get_args( $strParam, $blnRequired = false ) {
+	$args = $_SERVER['argv'];
 
-	$out = array ();
+	$out = array();
 
 	$last_arg = null;
 	$return = null;
 
-	$il = sizeof ( $args );
+	$il = sizeof( $args );
 
-	for($i = 1, $il; $i < $il; $i ++) {
-		if (( bool ) preg_match ( "/^--(.+)/", $args [$i], $match )) {
-			$parts = explode ( "=", $match [1] );
-			$key = preg_replace ( "/[^a-z0-9]+/", "", $parts [0] );
+	for ( $i = 1, $il; $i < $il; $i++ ) {
+		if ( (bool) preg_match( "/^--(.+)/", $args[$i], $match ) ) {
+			$parts = explode( "=", $match[1] );
+			$key = preg_replace( "/[^a-z0-9]+/", "", $parts[0] );
 
-			if (isset ( $parts [1] )) {
-				$out [$key] = $parts [1];
+			if ( isset( $parts[1] ) ) {
+				$out[$key] = $parts[1];
 			} else {
-				$out [$key] = true;
+				$out[$key] = true;
 			}
 
 			$last_arg = $key;
-		} else if (( bool ) preg_match ( "/^-([a-zA-Z0-9]+)/", $args [$i], $match )) {
-			for($j = 0, $jl = strlen ( $match [1] ); $j < $jl; $j ++) {
-				$key = $match [1] {$j};
-				$out [$key] = true;
+		} else if ( (bool) preg_match( "/^-([a-zA-Z0-9]+)/", $args[$i], $match ) ) {
+			for ( $j = 0, $jl = strlen( $match[1] ); $j < $jl; $j++ ) {
+				$key = $match[1]{$j};
+				$out[$key] = true;
 			}
 
 			$last_arg = $key;
-		} else if ($last_arg !== null) {
-			$out [$last_arg] = $args [$i];
+		} else if ( $last_arg !== null ) {
+			$out[$last_arg] = $args[$i];
 		}
 	}
 
 	// Check array for specified param
-	if (isset ( $out [$strParam] )) {
+	if ( isset( $out[$strParam] ) ) {
 		// Set return value
-		$return = $out [$strParam];
+		$return = $out[$strParam];
 	}
 
 	// Check for missing required param
-	if (! isset ( $out [$strParam] ) && $blnRequired) {
+	if ( !isset( $out[$strParam] ) && $blnRequired ) {
 		// Display message and exit
 		echo "\"$strParam\" parameter is required but was not specified\n";
-		exit ();
+		exit();
 	}
 
 	return $return;
