@@ -5,56 +5,34 @@ Plugin URI: http://wordpress.org/extend/plugins/class-wp-importer/
 Description: Shared base class for importer plugins.
 Author: Automattic, Brian Colinger
 Author URI: http://automattic.com/
-Version: 0.5
-Stable tag: 0.5
+Version: 0.6
+Stable tag: 0.6
 License: GPL v2 - http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 */
 
 /**
  * WP_Importer base class
- * @author Brian Colinger
  */
 class WP_Importer {
-
 	/**
 	 * Class Constructor
 	 *
 	 * @return void
 	 */
-	public function __construct() {}
+	function __construct() {}
 
-	/**
-	 * Toggle $wpdb to read from MySql masters or slaves
-	 *
-	 * @param bool $flag
-	 * @return void
-	 */
-	public function read_from_masters( $flag = true ) {
-		global $wpdb;
-
-		if ( $flag === true ) {
-			// Read from masters
-			$wpdb->send_reads_to_masters();
-		} else {
-			// Read from slaves
-			$wpdb->srtm = array();
-		}
+	function WP_Importer() {
+		$this->__construct();
 	}
 
 	/**
 	 * Returns array with imported permalinks from WordPress database
 	 *
 	 * @param string $bid
-	 * @param bool $read_from_master
 	 * @return array
 	 */
-	public function get_imported_posts( $importer_name, $bid, $read_from_master = false ) {
+	function get_imported_posts( $importer_name, $bid ) {
 		global $wpdb;
-
-		if ( $read_from_master === true ) {
-			// Set $wpdb to read from masters
-			$this->read_from_masters( true );
-		}
 
 		$hashtable = array();
 
@@ -81,11 +59,6 @@ class WP_Importer {
 		// unset to save memory
 		unset( $results, $r );
 
-		if ( $read_from_master === true ) {
-			// Set $wpdb to read from slaves
-			$this->read_from_masters( false );
-		}
-
 		return $hashtable;
 	}
 
@@ -93,16 +66,10 @@ class WP_Importer {
 	 * Return count of imported permalinks from WordPress database
 	 *
 	 * @param string $bid
-	 * @param bool $read_from_master
 	 * @return int
 	 */
-	public function count_imported_posts( $importer_name, $bid, $read_from_master = false ) {
+	function count_imported_posts( $importer_name, $bid ) {
 		global $wpdb;
-
-		if ( $read_from_master === true ) {
-			// Set $wpdb to read from masters
-			$this->read_from_masters( true );
-		}
 
 		$count = 0;
 
@@ -118,11 +85,6 @@ class WP_Importer {
 		// unset to save memory
 		unset( $results );
 
-		if ( $read_from_master === true ) {
-			// Set $wpdb to read from slaves
-			$this->read_from_masters( false );
-		}
-
 		return $count;
 	}
 
@@ -130,16 +92,10 @@ class WP_Importer {
 	 * Set array with imported comments from WordPress database
 	 *
 	 * @param string $bid
-	 * @param bool $read_from_master
 	 * @return array
 	 */
-	function get_imported_comments( $bid, $read_from_master = false ) {
+	function get_imported_comments( $bid ) {
 		global $wpdb;
-
-		if ( $read_from_master === true ) {
-			// Set $wpdb to read from masters
-			$this->read_from_masters( true );
-		}
 
 		$hashtable = array();
 
@@ -171,15 +127,10 @@ class WP_Importer {
 		// unset to save memory
 		unset( $results, $r );
 
-		if ( $read_from_master === true ) {
-			// Set $wpdb to read from slaves
-			$this->read_from_masters( false );
-		}
-
 		return $hashtable;
 	}
 
-	public function set_blog( $blog_id ) {
+	function set_blog( $blog_id ) {
 		if ( is_numeric( $blog_id ) ) {
 			$blog_id = (int) $blog_id;
 		} else {
@@ -208,7 +159,7 @@ class WP_Importer {
 		return $blog_id;
 	}
 
-	public function set_user( $user_id ) {
+	function set_user( $user_id ) {
 		if ( is_numeric( $user_id ) ) {
 			$user_id = (int) $user_id;
 		} else {
@@ -230,7 +181,7 @@ class WP_Importer {
 	 * @param string $b
 	 * @return int
 	 */
-	public function cmpr_strlen( $a, $b ) {
+	function cmpr_strlen( $a, $b ) {
 		return strlen( $b ) - strlen( $a );
 	}
 
@@ -243,7 +194,7 @@ class WP_Importer {
 	 * @param bool $head
 	 * @return array
 	 */
-	public function get_page( $url, $username = '', $password = '', $head = false ) {
+	function get_page( $url, $username = '', $password = '', $head = false ) {
 		// Increase the timeout
 		add_filter( 'http_request_timeout', array( &$this, 'bump_request_timeout' ) );
 
@@ -265,7 +216,7 @@ class WP_Importer {
 	 * @param int $val
 	 * @return int
 	 */
-	public function bump_request_timeout( $val ) {
+	function bump_request_timeout( $val ) {
 		return 60;
 	}
 
@@ -274,7 +225,7 @@ class WP_Importer {
 	 *
 	 * @return bool
 	 */
-	public function is_user_over_quota() {
+	function is_user_over_quota() {
 		global $current_user, $current_blog;
 
 		if ( function_exists( 'upload_is_user_over_quota' ) ) {
@@ -286,17 +237,40 @@ class WP_Importer {
 
 		return false;
 	}
+
+	/**
+	 * Replace newlines, tabs, and multiple spaces with a single space
+	 *
+	 * @param string $string
+	 * @return string
+	 */
+	function min_whitespace( $string ) {
+		return preg_replace( '|[\r\n\t ]+|', ' ', $string );
+	}
+
+	/**
+	 * Reset global variables that grow out of control during imports
+	 *
+	 * @return void
+	 */
+	function stop_the_insanity() {
+		global $wpdb, $wp_actions;
+		// Or define( 'WP_IMPORTING', true );
+		$wpdb->queries = array();
+		// Reset $wp_actions to keep it from growing out of control
+		$wp_actions = array();
+	}
 }
 
 /**
  * Returns value of command line params.
  * Exits when a required param is not set.
  *
- * @param string $strParam
- * @param bool $blnRequired
+ * @param string $param
+ * @param bool $required
  * @return mixed
  */
-function get_args( $strParam, $blnRequired = false ) {
+function get_args( $param, $required = false ) {
 	$args = $_SERVER['argv'];
 
 	$out = array();
@@ -331,41 +305,17 @@ function get_args( $strParam, $blnRequired = false ) {
 	}
 
 	// Check array for specified param
-	if ( isset( $out[$strParam] ) ) {
+	if ( isset( $out[$param] ) ) {
 		// Set return value
-		$return = $out[$strParam];
+		$return = $out[$param];
 	}
 
 	// Check for missing required param
-	if ( !isset( $out[$strParam] ) && $blnRequired ) {
+	if ( !isset( $out[$param] ) && $required ) {
 		// Display message and exit
-		echo "\"$strParam\" parameter is required but was not specified\n";
+		echo "\"$param\" parameter is required but was not specified\n";
 		exit();
 	}
 
 	return $return;
-}
-
-/**
- * Replace multiple spaces with a single space
- *
- * @param string $string
- * @return string
- */
-function min_whitespace( $string ) {
-	return preg_replace( '|\s+|', ' ', $string );
-}
-
-/**
- * Reset global variables that grow out of control
- *
- * @return void
- */
-function stop_the_insanity() {
-	global $wpdb, $wp_actions;
-
-	// Or define( 'WP_IMPORTING', true );
-	$wpdb->queries = array();
-	// Reset $wp_actions to keep it from growing out of control
-	$wp_actions = array();
 }
